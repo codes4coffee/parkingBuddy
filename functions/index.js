@@ -26,12 +26,22 @@ const app = dialogflow({debug: true});
 
 // Handle the Dialogflow intent named 'favorite color'.
 // The intent collects a parameter named 'color'.
-app.intent('listBestGarage', (conv) => {
+app.intent('listSpotsInGarage', (conv, {parkingStructure, spotColor}) => {
     return request("http://us-central1-utdapi-217616.cloudfunctions.net/function-1").then(function(body){
+        let structureNumber = parkingStructure.substring(parkingStructure.length - 1);
+        let jsonIndex = parseInt(structureNumber, 10);
+
+        if(jsonIndex == 1){
+            jsonIndex = 0;
+        }else if(jsonIndex == 3){
+            jsonIndex = 1;
+        }else{
+            jsonIndex = 2;
+        }
+        let spotIndex = "parking_"+spotColor;
         let jsonResponse = JSON.parse(body);
-        console.log(jsonResponse);
-        let parkingGreen = jsonResponse[0].parking_green.toString();
-        let responseString = "There are " + parkingGreen + " green spots in parking structure 1";
+        let parkingGreen = jsonResponse[jsonIndex][spotIndex].toString();
+        let responseString = parkingStructure + " has " + parkingGreen + spotColor + " " + "spots available";
         conv.close(responseString);
     });
 });
